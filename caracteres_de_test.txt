@@ -1,0 +1,13 @@
+1 octet: a
+1 octet: $
+
+2 octets: é
+2 octets: ß
+
+3 octets: ケ
+3 octest: 한
+3 octets: ह
+
+4 octets: 𒐍
+4 octets: 𩸽
+4 octest: 𐍈
