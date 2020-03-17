@@ -1,4 +1,4 @@
-.include "macros.s""
+.include "macros.s"
 .global  main
 
 /*
@@ -35,7 +35,7 @@ main:
 //Section pour l'appel des fonction
 
 Taille:
-	mov		x0, chaine			//Placer chaine caractere dans x0
+	adr		x0, chaine			//Placer l'adresse du debut de la chaine de caractere dans x0
 	bl		TrouverTaille		//Appeller la fonction pour trouver la taille, celle ci sera dans x1
 	adr		x0, fmtSortieNum	//Afficher le nombre de caractere en sortie
 	bl		printf
@@ -64,16 +64,33 @@ TrouverTaille:
 	mov		x19, 0			//Compteur de tour de boucle (Compte par le fait meme les caractères)
 	mov		x20, x0			//Iterateur de tableau
 F1Boucle:
-	cmp		x20, 0 			//Verifier si caractere nul
+	ldrb	w21, [x20]
+	cmp		w21, 0			//Verifier si caractere nul
 	b.eq	F1Sortie		//Si nul, sortie
 	add		x19, x19, 1		//Sinon, incrementer compteur, aller au caractère suivant
 	add		x20, x20, 1		//Incrementation pour du ASCII
 	//Interpretation du UTF8, incrementation de x20(savoir ou se placer dans le tableau) en conséquence
+	tbz		w21, 7, F1Boucle  //Si l'octet a un 1 a la position 7, le caractere est sur plus d'un octet en UTF8
+	add		x20, x20, 3		  //On place l'incrementation au maximum (4)
+	//On applique successivement les masques pour obtenir la bonne incrementation
+	mov		w23, 240
+	and		w22, w21, w23	  //On copie dans x22 les 2 bits de poids fort de w21 a l'aide du masque w3
+	cmp		w22, w23		  //Si les 4 bits de poid fort son allumé
+	b.eq	F1Boucle		  //Le caractere s'affichait sur 4 octet, on retourne dans la boucle
+	sub		x20, x20, 1		  //Sinon, on decremente et on test pour 3 octet
+	mov		w23, 224
+	and		w22, w21, w23
+	cmp		w22, w23
+	b.eq	F1Boucle		 //Sinon, c'etait sur 2 octets
+	sub 	x20, x20, 1
 	b		F1Boucle
+
 F1Sortie:
 	mov 	x1, x19
 	RESTORE
 	ret
+
+
 
 
 
