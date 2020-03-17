@@ -17,7 +17,7 @@ main:
 	bl		scanf
 	ldr		x20, code
 
-//Section pour le switch case de selection
+	//Section pour le switch case de selection
 	cmp 	x20, 0
 	b.eq	Taille
 	cmp		x20, 1
@@ -33,7 +33,6 @@ main:
 	b		Fin
 
 //Section pour l'appel des fonction
-
 Taille:
 	adr		x0, chaine			//Placer l'adresse du debut de la chaine de caractere dans x0
 	bl		TrouverTaille		//Appeller la fonction pour trouver la taille, celle ci sera dans x1
@@ -41,12 +40,22 @@ Taille:
 	bl		printf
 	b 		Fin
 Casse:
+	adr		x0, chaine
+	bl		ChangerMot
+	adr		x0, fmtSortieChaine
+	adr		x1, chaine
+	bl		printf
 	b		Fin
 Hexa:
 	b		Fin
 Bin:
 	b		Fin
 Decalage:
+	adr		x0, chaine
+	bl		CodeSecret
+	adr		x0, fmtSortieChaine
+	adr		x1, chaine
+	bl		printf
 	b		Fin
 Permutation:
 	b		Fin
@@ -84,15 +93,159 @@ F1Boucle:
 	b.eq	F1Boucle		 //Sinon, c'etait sur 2 octets
 	sub 	x20, x20, 1
 	b		F1Boucle
-
 F1Sortie:
 	mov 	x1, x19
 	RESTORE
 	ret
 
+/*
+FCT : ChangerMot
+Entree : debut d'une chaine de caractère en AScii x0
+Sortie : Change directement la chaine envoyé
+*/
+ChangerMot:
+	SAVE
+	mov		x19, 0  		//Boolean pair/impair
+	mov		x20, 0 			//Iterateur tableau
+	mov		x20, x0
+	sub		x20, x20, 1		//Offset de 1, pour que la boucle puisse incrementer la memoire sans if
+F2Boucle:
+	add		x20, x20, 1		//incremente avant loading, car possible modif a la case
+	ldrb	w21, [x20]
+	mov		w23, 0
+	cmp		w21, w23
+	b.eq	F2Sortie  		//Fin de la chaine de caractère
+	cmp		x19, xzr
+	b.ne	F2Impair
+F2Pair:
+	mov		x19, 1			//Met indicateur a impair pour prochainne boucle
+	mov		w23, 65
+	cmp		w21, w23
+	b.lo	F2Boucle		//Caractere speciaux, pas de modif
+	mov		w23, 97
+	cmp		w21, w23
+	b.hs	F2Voyelle		//Si deja minuscule, va a la verif des voyelles speciales
+	add		w21, w21, 32	//Transforme w21 en minuscule
+	strb	w21, [x20]		//Modifie le caractere dans la chaine pour w21
+	b		F2Voyelle
+F2Impair:
+	mov		x19, 0 			//Met indicateur a pair pour prochaine boucle
+	mov		w23, 65
+	cmp		w21, w23
+	b.lo	F2Boucle		//Caractere speciaux, pas de modif
+	mov		w23, 97
+	cmp		w21, w23
+	b.lo	F2Voyelle		//si deja majuscule, va a la verif des voyelles speciales
+	sub		w21, w21, 32	//Transforme w21 en majuscule
+	strb	w21, [x20]		//Modifie le caractere dans la chaine pour w21
+	b		F2Voyelle
+F2Voyelle:
+	mov		w23, 65
+	cmp		w21, w23
+	b.ne	F2Next1
+	mov		w23, 52
+	ldrb	w23, [x20]
+	b		F2Boucle
+F2Next1:
+	mov		w23, 97
+	cmp		w21, w23
+	b.ne	F2Next2
+	mov		w23, 52
+	strb	w23, [x20]
+	b		F2Boucle
+F2Next2:
+	mov		w23, 69
+	cmp		w21, w23
+	b.ne	F2Next3
+	mov		w23, 51
+	strb	w23, [x20]
+	b		F2Boucle
+F2Next3:
+	mov		w23, 101
+	cmp		w21, w23
+	b.ne	F2Next4
+	mov		w23, 51
+	strb	w23, [x20]
+	b		F2Boucle
+F2Next4:
+	mov		w23, 73
+	cmp		w21, w23
+	b.ne	F2Next5
+	mov		w23, 49
+	strb	w23, [x20]
+	b		F2Boucle
+F2Next5:
+	mov		w23, 105
+	cmp		w21, w23
+	b.ne	F2Next6
+	mov		w23, 49
+	strb	w23, [x20]
+	b		F2Boucle
+F2Next6:
+	mov		w23, 79
+	cmp		w21, w23
+	b.ne	F2Next7
+	mov		w23, 48
+	strb	w23, [x20]
+	b		F2Boucle
+F2Next7:
+	mov		w23, 111
+	cmp		w21, w23
+	b.ne	F2Boucle			//Pas une voyelle a modifié simplement
+	mov		w23, 48
+	strb	w23, [x20]
+	b		F2Boucle
+F2Sortie:
+	RESTORE
+	ret
 
 
-
+/*
+FCT : CodeSecret
+Entree : debut d'une chaine de caractere en ASCII x0
+Sortie : Change directement la chaine envoyé
+*/
+CodeSecret:
+	SAVE
+	mov		w19, 0  		//Temporaire
+	mov		x20, x0 		//Iterateur tableau
+	sub		x20, x20, 1		//Offset de 1, pour que la boucle puisse incrementer la memoire sans if
+F3Boucle:
+	add		x20, x20, 1		//incremente avant loading, car possible modif a la case
+	ldrb	w21, [x20]		//Valeur courante
+	mov		w19, 0
+	cmp		w21, w19
+	b.eq	F3Sortie  		//Fin de la chaine de caractère
+	//Etape 1 : Extraire les 5 bit de poid faible,
+	mov		w19, 31  		//Masque pour les 5 bits poid faible
+	and		w22, w21, w19	//w22 contient les 5 bits de poids faible de la valeur courante
+	//Etape 2 : Rotation circulaire de ces 5bits, de 3bits vers la droite
+	ror		w23, w22, 3		//On place les 2bits de poid faible pour les extraire
+	mov		w19, 3			//Masque pour les 2bits poid faible
+	and		w24, w23, w19	//w24 contient maintenant le 2bits de poids faible
+	ror		w23, w23, 27	//on place les bits 3 à 5 pour l'extraction [27 car on est dans un registre de 32 bit pas un octet]
+	mov		w19, 28			//Masque pour les 3bits suivante a allé cherché
+	and		w25, w23, w19	//W25 contient les 3 autres bits de poids faible
+	//Etape 3 : Extraire les 3 bits de poids fort
+	mov		w19, 224		//Preparation du masque pour aller chercher les 3 bits de poid fort
+	and		w26, w21, w19	//w26 contient les 3 bits de poid fort
+	//Etape 4 : Additionner les 3 extractions ensemble (5 faible apres rotation + 3 fort initial)
+	orr		w24, w24, w25
+	orr		w24, w24, w26 	//Normalement, rendu ici, on a reconstruit les la rotationt d'encryptage dans w24
+	//Etape 5 : Reculer de 7 lettre dans l'alphabet (Si ABCDEFG [<72], on additionne plutot de 19)
+	mov		w19, 72
+	cmp		w24, w19
+	b.lo	F3Debordement
+	sub		w24, w24, 7
+	strb	w24, [x20]
+	b		F3Boucle
+F3Debordement:
+	add 	w24, w24, 19
+	strb	w24, [x20]
+	b		F3Boucle
+F3Sortie:
+	RESTORE
+	ret
 
 
 
@@ -112,6 +265,7 @@ chaine:     .skip   1024
 
 .section ".rodata"
 // Format pour lire une chaîne de caractères d'une ligne (incluant des espaces)
-fmtNum:			.asciz	"%lu"
-fmtLecture: 	.asciz  "%[^\n]s"
-fmtSortieNum: 	.asciz  "%lu\n"
+fmtNum:				.asciz	"%lu"
+fmtLecture: 		.asciz  "%[^\n]s"
+fmtSortieNum: 		.asciz  "%lu\n"
+fmtSortieChaine:	.asciz  "%s\n"
