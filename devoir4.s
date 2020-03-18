@@ -261,29 +261,55 @@ Sortie : Nbre converti en decimal
 HexaEnDecimal:
 	SAVE
 	mov		x19, x0  		//Position iterateur du tableau
-	mov 	x20, 0			//Sum en base 10
-	mov		x21, 0 			// i, iterateur tableau
-	mov 	x22, 0			// j, iterateur power
-	mov		x23, 0			// power of 16
-getPower:
-	mov		x24, 16			// const 16
-	cmp 	x21, x22		// if(i==j)
-	b.eq 	addSum			// 		branch to addSum
-	add 	x22, x22, 1		// else
-	mul		x23, x23, x24	//		j += 1
-	b 		getPower		// 		power x23*16
-addSum:
-	mov		x23, 0			// reset power of 16
-	ldrb 	w25, [x19, x21]	// charger 1 octet pre-incrementer
-c:
-	cmp 	w25, 120		// 120 en ASCII=x
-	b.eq	sortieHexa
-	mul 	x25, x25, x23	// x25*16^i
-	add 	x20, x20, x25	// sum += x25
-	add 	x21, x21, 1		// i+=1
-	b getPower
-sortieHexa:
-	mov x0, x20
+	bl		TrouverTaille	// Trouver nbre chars dans mot
+	mov 	x20, x1			// nbreChars
+	sub 	x21, x20, 2		// nbre de nbreHexa
+	mov 	x28, 0			// sum contiendra nbre decimale
+	mov 	x22, 0			// i=0 (compteur nbre char)
+	mov 	x23, 0			// j=0 (compteur pour power)
+	mov 	x24, 1			// contiendra 16^i
+	mov		x25, 16			// necessaire pour mul
+F4Boucle:
+	cmp 	x22, x21		// if(i==nbreHexa)
+	b.eq	SortieHexa
+F4Power:
+	cmp 	x23, x22		// if(i==j)
+	b.eq 	F4Sum
+	mul		x24, x24, x25
+	add 	x23, x23, 1
+	b		F4Power
+F4Sum:
+	// x26 contient la position finalement utilise pour indexe
+	add		x26, x20, 0		// prend en compte index partant de 0 et 0x
+	sub		x26, x26, x22	// doit enlever i
+	sub 	x26, x26, 1
+	ldrb 	w27, [x19, x26]	// charger un char a la position det.
+AsciiToDec:
+	cmp 	w27, 57
+	mov 	x3, 0
+	b.le	ZeroToNine
+	b 		AtoF
+ZeroToNine:
+	add 	x5, x3, 48		// Valeur ascii 0-9: 48-57
+	mov 	x4, x3			// dupl. single reg for both branches (0-9 or A-F)
+	cmp 	x5, x27
+	b.eq	ValLoad
+	add 	x3, x3, 1
+	b 		ZeroToNine
+AtoF:
+	add 	x5, x3, 65		// Valeur ascii A-F: 65-70
+	add 	x4, x3, 10		// x4 contient nombre convertie
+	cmp		x5, x27
+	b.eq	ValLoad
+	add 	x3, x3, 1
+	b 		AtoF
+ValLoad:
+	mul 	x27, x4, x24	// a*16^i
+	add		x28, x28, x27	// sum+=a*16^i
+	add 	x22, x22, 1		// i += 1
+	b 		F4Boucle
+SortieHexa:
+	mov x1, x28
 	RESTORE
 	ret
 
