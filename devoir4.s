@@ -47,6 +47,10 @@ Casse:
 	bl		printf
 	b		Fin
 Hexa:
+	adr		x0, chaine
+	bl		HexaEnDecimal
+	adr 	x0, fmtSortieNum
+	bl 		printf
 	b		Fin
 Bin:
 	b		Fin
@@ -247,12 +251,41 @@ F3Sortie:
 	RESTORE
 	ret
 
-
-
-
-
-
-
+/*
+FCT : CodeSecret
+Entree : debut d'une chaine de caractere representant un nbre hexadecimale
+ 	en commencant par 0x
+Sortie : Nbre converti en decimal
+*/
+// TODO: fix starting from wrong end
+HexaEnDecimal:
+	SAVE
+	mov		x19, x0  		//Position iterateur du tableau
+	mov 	x20, 0			//Sum en base 10
+	mov		x21, 0 			// i, iterateur tableau
+	mov 	x22, 0			// j, iterateur power
+	mov		x23, 0			// power of 16
+getPower:
+	mov		x24, 16			// const 16
+	cmp 	x21, x22		// if(i==j)
+	b.eq 	addSum			// 		branch to addSum
+	add 	x22, x22, 1		// else
+	mul		x23, x23, x24	//		j += 1
+	b 		getPower		// 		power x23*16
+addSum:
+	mov		x23, 0			// reset power of 16
+	ldrb 	w25, [x19, x21]	// charger 1 octet pre-incrementer
+c:
+	cmp 	w25, 120		// 120 en ASCII=x
+	b.eq	sortieHexa
+	mul 	x25, x25, x23	// x25*16^i
+	add 	x20, x20, x25	// sum += x25
+	add 	x21, x21, 1		// i+=1
+	b getPower
+sortieHexa:
+	mov x0, x20
+	RESTORE
+	ret
 
 Fin:
     mov     x0, 0
