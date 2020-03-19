@@ -1,4 +1,4 @@
-.include "macros.s"
+.include "macros.s
 .global  main
 
 /*
@@ -335,27 +335,25 @@ BinEnDec:
 	mov		x27, -1			// negatif par defaut avant branchement
 
 	cmp 	x21, x5			// if(x21==1)
-	b.eq 	FirstNonNeg
+	b.eq 	FirstNonNeg		//
 	mov 	x27, 1			// positif si pas branche
 	b		NbreCharPos
 FirstNonNeg:
-	// sub 	x23, x20, x4
-	// cmp 	x23, x22			// if(position==nbreChiffres)
-	// b.eq	SingleNeg
-	add 	x4, x4, 1
-	ldrb	w21, [x19, x4]
-	cmp 	x21, x5
+	add 	x4, x4, 1		// x4+=1
+	ldrb	w21, [x19, x4]	// load prochain chiffre
+	cmp 	x21, x5			// if(val!=1)
 	b.ne 	NbreCharNeg
 	b 		FirstNonNeg
-SingleNeg:
-	mov 	x3, 1
-	b		SortieBin
 NbreCharNeg:
 	sub 	x4, x4, 1		// revenir au 1 juste avant le dernier 0
-	sub 	x3, x20, x4
+	sub 	x3, x20, x4		// nbre de chiffre pour addition
 	b 		SortieBin
 NbreCharPos:
-	mov		x3, x22
+	mov		x3, x22			// dupl. pour utiliser reg simple
+CalculSomme:
+	mov 	x28, 0			// somme
+	mov		x23, 0			// iterateur
+	cmp
 SortieBin:
 	mov 	x1, x3
 	RESTORE
