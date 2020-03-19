@@ -53,6 +53,10 @@ Hexa:
 	bl 		printf
 	b		Fin
 Bin:
+	adr		x0, chaine
+	bl		BinEnDec
+	adr 	x0, fmtSortieNum
+	bl 		printf
 	b		Fin
 Decalage:
 	adr		x0, chaine
@@ -252,12 +256,11 @@ F3Sortie:
 	ret
 
 /*
-FCT : CodeSecret
+FCT : Hexadecimale en decimale
 Entree : debut d'une chaine de caractere representant un nbre hexadecimale
  	en commencant par 0x
 Sortie : Nbre converti en decimal
 */
-// TODO: fix starting from wrong end
 HexaEnDecimal:
 	SAVE
 	mov		x19, x0  		//Position iterateur du tableau
@@ -309,9 +312,55 @@ ValLoad:
 	add 	x22, x22, 1		// i += 1
 	b 		F4Boucle
 SortieHexa:
-	mov x1, x28
+	mov 	x1, x28
 	RESTORE
 	ret
+
+/*
+FCT : Binaire en decimale
+Entree : debut d'une chaine de caractere representant un nbre binaire
+ 	en commencant par 0b
+Sortie : Nbre converti en decimal
+*/
+BinEnDec:
+	SAVE
+	mov		x19, x0  		//Position iterateur du tableau
+	bl		TrouverTaille	// Trouver nbre chars dans mot
+	mov 	x20, x1			// nbreChars
+	sub		x22, x20, 2		// nbre de chiffres binaires
+	mov 	x4, 2			// position du premier chiffre bin
+	mov 	x5, 49			// 1 en ascii
+
+	ldrb	w21, [x19, x4]	// w21 contient bit de signes
+	mov		x27, -1			// negatif par defaut avant branchement
+
+	cmp 	x21, x5			// if(x21==1)
+	b.eq 	FirstNonNeg
+	mov 	x27, 1			// positif si pas branche
+	b		NbreCharPos
+FirstNonNeg:
+	// sub 	x23, x20, x4
+	// cmp 	x23, x22			// if(position==nbreChiffres)
+	// b.eq	SingleNeg
+	add 	x4, x4, 1
+	ldrb	w21, [x19, x4]
+	cmp 	x21, x5
+	b.ne 	NbreCharNeg
+	b 		FirstNonNeg
+SingleNeg:
+	mov 	x3, 1
+	b		SortieBin
+NbreCharNeg:
+	sub 	x4, x4, 1		// revenir au 1 juste avant le dernier 0
+	sub 	x3, x20, x4
+	b 		SortieBin
+NbreCharPos:
+	mov		x3, x22
+SortieBin:
+	mov 	x1, x3
+	RESTORE
+	ret
+
 
 Fin:
     mov     x0, 0
