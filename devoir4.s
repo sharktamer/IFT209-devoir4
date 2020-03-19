@@ -379,7 +379,8 @@ SortieBin:
 	mov 	x1, x28
 	cmp		x27, 1
 	b.eq	SortieBin1
-	neg 	x1, x1
+	mvn		x1, x1
+	adds	x1, x1, 1
 SortieBin1:
 	RESTORE
 	ret
