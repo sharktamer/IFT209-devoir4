@@ -1,4 +1,4 @@
-.include "macros.s
+.include "macros.s"
 .global  main
 
 /*
@@ -353,9 +353,30 @@ NbreCharPos:
 CalculSomme:
 	mov 	x28, 0			// somme
 	mov		x23, 0			// iterateur
-	cmp
+	mov 	x24, 2
+	mov 	x25, 0			// iterateur power
+	mov 	x26, 1			// pour power^0
+BouclePower:
+	cmp 	x23, x22
+	b.eq 	SortieBin		// condition arret sum
+	cmp		x3, x25
+	b.eq	BoucleSomme		// condition autre nombre
+	cmp 	x25, 0
+	b.eq 	FirstPower		// condition premier nombre droit
+	mul 	x26, x26, x24	// prochaine puissance de 2
+FirstPower:
+	add		x25, x25, 1
+BoucleSomme:
+	add		x23, x23, 1		// incrementer iterateur
+	sub		x2, x20, x23	// position relatif a la fin du nombre bin
+	ldrb	w21, [x19, x2]
+	cmp 	x21, x5			// if(w21==x5)
+	b.ne	DontAdd
+	add 	x28, x28, x26
+DontAdd:
+	b 		BouclePower
 SortieBin:
-	mov 	x1, x3
+	mov 	x1, x28
 	RESTORE
 	ret
 
