@@ -332,7 +332,7 @@ BinEnDec:
 	mov 	x5, 49			// 1 en ascii
 
 	ldrb	w21, [x19, x4]	// w21 contient bit de signes
-	mov		x27, -1			// negatif par defaut avant branchement
+	mov		x27, 0			// negatif par defaut avant branchement
 
 	cmp 	x21, x5			// if(x21==1)
 	b.eq 	FirstNonNeg		//
@@ -347,7 +347,7 @@ FirstNonNeg:
 NbreCharNeg:
 	sub 	x4, x4, 1		// revenir au 1 juste avant le dernier 0
 	sub 	x3, x20, x4		// nbre de chiffre pour addition
-	b 		SortieBin
+	b 		CalculSomme
 NbreCharPos:
 	mov		x3, x22			// dupl. pour utiliser reg simple
 CalculSomme:
@@ -357,7 +357,7 @@ CalculSomme:
 	mov 	x25, 0			// iterateur power
 	mov 	x26, 1			// pour power^0
 BouclePower:
-	cmp 	x23, x22
+	cmp 	x23, x3
 	b.eq 	SortieBin		// condition arret sum
 	cmp		x3, x25
 	b.eq	BoucleSomme		// condition autre nombre
@@ -377,6 +377,10 @@ DontAdd:
 	b 		BouclePower
 SortieBin:
 	mov 	x1, x28
+	cmp		x27, 1
+	b.eq	SortieBin1
+	neg 	x1, x1
+SortieBin1:
 	RESTORE
 	ret
 
