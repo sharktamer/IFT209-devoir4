@@ -55,7 +55,7 @@ Hexa:
 Bin:
 	adr		x0, chaine
 	bl		BinEnDec
-	adr 	x0, fmtSortieNum
+	adr 	x0, fmtSortieNumSigne
 	bl 		printf
 	b		Fin
 Decalage:
@@ -400,4 +400,5 @@ chaine:     .skip   1024
 fmtNum:				.asciz	"%lu"
 fmtLecture: 		.asciz  "%[^\n]s"
 fmtSortieNum: 		.asciz  "%lu\n"
+fmtSortieNumSigne:	.asciz	"%ld\n"
 fmtSortieChaine:	.asciz  "%s\n"
