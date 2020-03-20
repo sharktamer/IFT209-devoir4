@@ -68,7 +68,7 @@ Decalage:
 Permutation:
 	adr		x0, chaine
 	bl		Permutate
-	adr		x1, fmtSortieChaine
+	adr		x0, fmtSortieChaine
 	adr		x1, chaine
 	bl		printf
 	b		Fin
@@ -400,21 +400,46 @@ Permutate:
 	SAVE
 	mov		x19, x0  		// Pointeur du tableau
 	bl		TrouverTaille	// Trouver nbre chars dans mot
-	mov 	x2, x1			// rightIdx (nbreChars)
+	sub		x2, x1, 1		// righTidx starts at 0
 	mov 	x1, 0			// leftIdx
-	cmp 	x1, x2			// if(leftIdx = rightIdx)
-	b.eq 	SortiePermutFonc
-	b		F6PermutR		// else
-
-F6PermutR:
-	mov 	x19, 48
-
-SortiePermutFonc:
-	mov		x1, x19
+	bl 		PermutateR
 	RESTORE
 	ret
 
+PermutateR:
+	SAVE
+	mov		x20, 0			// iterateur
+	cmp 	x1, x2			// if(rightIdx == leftIdx)
+	b.eq	SortiePermutateR
 
+BouclePermute:
+	// conditions
+	cmp 	x20, x1			// if(i smaller than leftIdx)
+	b.lo	incI
+	add		x3, x2, 1
+	cmp 	x20, x3			// if(i greater rightIdx+1)
+	b.ge	SortiePermutateR
+
+	ldrb	w20, [x19, x20]	// load val du compteur
+	ldrb	w21, [x19, x1]	// load val de leftIdx
+	strb	w20, [x19, x1]	// swap(w20, w21)
+	strb	w21, [x19, x20]	//
+
+	add		x1, x1, 1		// leftIdx += 1
+	bl		PermutateR		// permutate(string, leftIdx+1, rightIdx)
+	sub		x1, x1, 1		// remettre leftIdx a val initiale
+
+	ldrb	w20, [x19, x20]	// load val du compteur
+	ldrb	w21, [x19, x1]	// load val de leftIdx
+	strb	w20, [x19, x1] 	// swap(w20, w21)
+	strb	w21, [x19, x20] //
+incI:
+	add		x20, x20, 1		// i+=1
+	b		BouclePermute
+
+SortiePermutateR:
+	RESTORE
+	ret
 
 Fin:
     mov     x0, 0
@@ -424,6 +449,7 @@ Fin:
 // Mémoire allouée pour une chaîne de caractères d'au plus 1024 octets
 code:		.skip	8
 chaine:     .skip   1024
+newChaine:	.skip	1024
 
 .section ".rodata"
 // Format pour lire une chaîne de caractères d'une ligne (incluant des espaces)
