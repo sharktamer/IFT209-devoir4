@@ -66,6 +66,11 @@ Decalage:
 	bl		printf
 	b		Fin
 Permutation:
+	adr		x0, chaine
+	bl		Permutate
+	adr		x1, fmtSortieChaine
+	adr		x1, chaine
+	bl		printf
 	b		Fin
 
 
@@ -383,6 +388,32 @@ SortieBin:
 SortieBin1:
 	RESTORE
 	ret
+
+
+/*
+FCT : Permutation d'une chaine de characteres
+Entree : Chaines de characteres
+Sortie : L'ensemble des permutations possibles
+(Sert comme coquille d'appels vers PermutateFonc)
+*/
+Permutate:
+	SAVE
+	mov		x19, x0  		// Pointeur du tableau
+	bl		TrouverTaille	// Trouver nbre chars dans mot
+	mov 	x2, x1			// rightIdx (nbreChars)
+	mov 	x1, 0			// leftIdx
+	cmp 	x1, x2			// if(leftIdx = rightIdx)
+	b.eq 	SortiePermutFonc
+	b		F6PermutR		// else
+
+F6PermutR:
+	mov 	x19, 48
+
+SortiePermutFonc:
+	mov		x1, x19
+	RESTORE
+	ret
+
 
 
 Fin:
