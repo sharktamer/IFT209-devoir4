@@ -399,19 +399,19 @@ Sortie : L'ensemble des permutations possibles
 Permutate:
 	SAVE
 	mov		x19, x0  		// Pointeur du tableau
+	mov 	x27, x19
 	bl		TrouverTaille	// Trouver nbre chars dans mot
+	mov		x28, x1			// const taille
 	sub		x2, x1, 1		// righTidx starts at 0
 	mov 	x1, 0			// leftIdx
 	bl 		PermutateR
 	RESTORE
 	ret
-
 PermutateR:
 	SAVE
 	mov		x20, 0			// iterateur
 	cmp 	x1, x2			// if(rightIdx == leftIdx)
 	b.eq	SortiePermutateR
-
 BouclePermute:
 	// conditions
 	cmp 	x20, x1			// if(i smaller than leftIdx)
@@ -420,23 +420,33 @@ BouclePermute:
 	cmp 	x20, x3			// if(i greater rightIdx+1)
 	b.ge	SortiePermutateR
 
-	ldrb	w20, [x19, x20]	// load val du compteur
-	ldrb	w21, [x19, x1]	// load val de leftIdx
-	strb	w20, [x19, x1]	// swap(w20, w21)
-	strb	w21, [x19, x20]	//
+	add 	x23, x20, x28	// ajouter taille
+	add		x24, x1, x28	// ajouter taille
+	add		x25, x2, 1		// ajouter taille
+	ldrb	w22, [x19, x23]	// load val du compteur
+	ldrb	w21, [x19, x24]	// load val de leftIdx
+	mov 	x26, 32			// stocker valeur de l'espace ascii
+	strb	w25, [x19, x25]	// mettre esapce a la fin
+	strb	w22, [x19, x24]	// swap(w22, w21)
+	strb	w21, [x19, x23]	//
 
 	add		x1, x1, 1		// leftIdx += 1
+	add		x27, x27, 3			// doit loader mot changer ici
 	bl		PermutateR		// permutate(string, leftIdx+1, rightIdx)
 	sub		x1, x1, 1		// remettre leftIdx a val initiale
 
-	ldrb	w20, [x19, x20]	// load val du compteur
-	ldrb	w21, [x19, x1]	// load val de leftIdx
-	strb	w20, [x19, x1] 	// swap(w20, w21)
-	strb	w21, [x19, x20] //
+	add 	x23, x20, x28	// ajouter taille
+	add		x24, x1, x28	// ajouter taille
+	add		x25, x2, 1		// ajouter taille
+	ldrb	w22, [x19, x23]	// load val du compteur
+	ldrb	w21, [x19, x24]	// load val de leftIdx
+	mov 	x26, 32			// stocker valeur de l'espace ascii
+	strb	w25, [x19, x25]	// mettre esapce a la fin
+	strb	w22, [x19, x24]	// swap(w22, w21)
+	strb	w21, [x19, x23]	//
 incI:
 	add		x20, x20, 1		// i+=1
 	b		BouclePermute
-
 SortiePermutateR:
 	RESTORE
 	ret
